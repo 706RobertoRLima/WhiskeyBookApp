@@ -1,0 +1,2 @@
+rootProject.name = 'WhiskeyLoginApp'
+include ':app'
