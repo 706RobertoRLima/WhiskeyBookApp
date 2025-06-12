@@ -66,13 +66,14 @@ fun LoginScreen(onLoginSuccess: (Boolean) -> Unit) {
 @Composable
 fun WhiskeyListScreen() {
     var newWhiskey by remember { mutableStateOf("") }
-    var whiskeys by remember { mutableStateOf(listOf("Glenlivet", "Macallan")) }
+    var whiskeys by remember { mutableStateOf(ArrayList<String>(listOf("Glenlivet", "Macallan"))) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // to add new whiskey lement to the list
         Text("Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(value = newWhiskey, onValueChange = { newWhiskey = it }, label = { Text("Add Whiskey") })
@@ -85,6 +86,19 @@ fun WhiskeyListScreen() {
         }) {
             Text("Add")
         }
+
+        // to remove whiskey element from the list
+        OutlinedTextField(value = removeWhiskey, onValueChange = { removeWhiskey = it }, label = { Text("Remove Whiskey") })
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = {
+            if (removeWhiskey.isNotBlank()) {
+                whiskeys.remove(removeWhiskey)
+                removeWhiskey = ""
+            }
+        }) {
+            Text("Remove")
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
         whiskeys.forEach { Text("– $it") }
     }
