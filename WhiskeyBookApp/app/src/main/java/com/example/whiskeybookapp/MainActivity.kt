@@ -1,4 +1,4 @@
-package com.example.whiskeyapp
+package com.example.whiskeybookapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -55,7 +55,7 @@ fun LoginScreen(onLoginSuccess: (Boolean) -> Unit) {
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
-            error = !(email == "robertorl19@hotmail.com" && password == "1234")
+            error = !(email == "robertorl_19@hotmail.com" && password == "1234")
             onLoginSuccess(!error)
         }) {
             Text("Login")
@@ -65,6 +65,7 @@ fun LoginScreen(onLoginSuccess: (Boolean) -> Unit) {
 
 @Composable
 fun WhiskeyListScreen() {
+    var removeWhiskey by remember { mutableStateOf("") }
     var newWhiskey by remember { mutableStateOf("") }
     var whiskeys by remember { mutableStateOf(ArrayList<String>(listOf("Glenlivet", "Macallan"))) }
 
@@ -80,7 +81,7 @@ fun WhiskeyListScreen() {
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
             if (newWhiskey.isNotBlank()) {
-                whiskeys = whiskeys + newWhiskey
+                whiskeys.add(newWhiskey)
                 newWhiskey = ""
             }
         }) {
