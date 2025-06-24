@@ -3,6 +3,8 @@ package com.whiskeybook
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,40 +30,76 @@ fun WhiskeyListScreen() {
     ) {
 
         // Search on google
-        Text("Search Whiskey on Google", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = { Text("Search") }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = {
-            if (searchQuery.isNotBlank()) {
-                val query = searchQuery.replace(" ", "+")
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse("https://www.google.com/search?q=$query")
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.weight(1f),
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search") }
+                )
+                IconButton(
+                    onClick = {
+                        if (searchQuery.isNotBlank()) {
+                            val query = searchQuery.replace(" ", "+")
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse("https://www.google.com/search?q=$query")
+                            }
+                            context.startActivity(intent)
+                        }
+                    },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search on Google")
                 }
-                context.startActivity(intent)
             }
-        }) {
-            Text("Search on Google")
         }
-        Spacer(modifier = Modifier.height(24.dp))
 
         // to add new whiskey element to the list
-        Text("Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(value = newWhiskey, onValueChange = { newWhiskey = it }, label = { Text("Add Whiskey") })
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = {
-            if (newWhiskey.isNotBlank()) {
-                whiskeys = whiskeys + newWhiskey
-                newWhiskey = ""
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedTextField(modifier = Modifier.weight(1f),
+                    value = newWhiskey,
+                    onValueChange = { newWhiskey = it },
+                    label = { Text("Add Whiskey") })
+
+                Button(onClick = {
+                    if (newWhiskey.isNotBlank()) {
+                        whiskeys = whiskeys + newWhiskey
+                        newWhiskey = ""
+                    }
+                }) {
+                    Text("Add")
+                }
             }
-        }) {
-            Text("Add")
         }
+
+
+        Text("Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         // to remove whiskey element from the list
         whiskeys.forEach { whiskey ->
