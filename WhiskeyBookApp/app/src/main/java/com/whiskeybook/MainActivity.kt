@@ -1,4 +1,4 @@
-package com.example.whiskeybookapp
+package com.whiskeybook
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

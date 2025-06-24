@@ -3,10 +3,10 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 android {
-    namespace 'com.example.whiskeybookapp'
+    namespace 'com.whiskeybook'
     compileSdk 34
     defaultConfig {
-        applicationId "com.example.whiskeybookapp"
+        applicationId "com.whiskeybook"
         minSdk 24
         targetSdk 34
         versionCode 1
