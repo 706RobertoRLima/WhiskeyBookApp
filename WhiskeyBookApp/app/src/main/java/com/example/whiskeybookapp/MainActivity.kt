@@ -65,23 +65,25 @@ fun LoginScreen(onLoginSuccess: (Boolean) -> Unit) {
 
 @Composable
 fun WhiskeyListScreen() {
-    var removeWhiskey by remember { mutableStateOf("") }
+
     var newWhiskey by remember { mutableStateOf("") }
-    var whiskeys by remember { mutableStateOf(ArrayList<String>(listOf("Glenlivet", "Macallan"))) }
+    var whiskeys by remember { mutableStateOf(listOf("Glenlivet", "Macallan")) }
+
 
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // to add new whiskey lement to the list
+
+        // to add new whiskey element to the list
         Text("Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(value = newWhiskey, onValueChange = { newWhiskey = it }, label = { Text("Add Whiskey") })
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
             if (newWhiskey.isNotBlank()) {
-                whiskeys.add(newWhiskey)
+                whiskeys = whiskeys + newWhiskey
                 newWhiskey = ""
             }
         }) {
@@ -89,18 +91,21 @@ fun WhiskeyListScreen() {
         }
 
         // to remove whiskey element from the list
-        OutlinedTextField(value = removeWhiskey, onValueChange = { removeWhiskey = it }, label = { Text("Remove Whiskey") })
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            if (removeWhiskey.isNotBlank()) {
-                whiskeys.remove(removeWhiskey)
-                removeWhiskey = ""
+        whiskeys.forEach { whiskey ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("– $whiskey")
+                Button(onClick = {
+                    whiskeys = whiskeys.filterNot { it == whiskey }
+                }) {
+                    Text("Remover")
+                }
             }
-        }) {
-            Text("Remove")
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        whiskeys.forEach { Text("– $it") }
     }
 }
