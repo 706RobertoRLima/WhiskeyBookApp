@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -68,13 +71,36 @@ fun WhiskeyListScreen() {
 
     var newWhiskey by remember { mutableStateOf("") }
     var whiskeys by remember { mutableStateOf(listOf("Glenlivet", "Macallan")) }
-
+    var searchQuery by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        // Search on google
+        Text("Search Whiskey on Google", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = {
+            if (searchQuery.isNotBlank()) {
+                val query = searchQuery.replace(" ", "+")
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = Uri.parse("https://www.google.com/search?q=$query")
+                }
+                context.startActivity(intent)
+            }
+        }) {
+            Text("Search on Google")
+        }
+        Spacer(modifier = Modifier.height(24.dp))
 
         // to add new whiskey element to the list
         Text("Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
