@@ -61,7 +61,7 @@ fun WhiskeyListScreen() {
                         if (searchQuery.isNotBlank()) {
                             val query = searchQuery.replace(" ", "+")
                             val intent = Intent(Intent.ACTION_VIEW).apply {
-                                data = Uri.parse("https://www.google.com/search?q=$query")
+                                data = Uri.parse("https://www.whiskybase.com/search/?q=$query")
                             }
                             context.startActivity(intent)
                         }
