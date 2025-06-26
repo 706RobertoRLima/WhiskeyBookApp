@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,8 +19,13 @@ import androidx.compose.ui.text.font.FontWeight
 @Composable
 fun WhiskeyListScreen() {
 
-    var newWhiskey by remember { mutableStateOf("") }
-    var whiskeys by remember { mutableStateOf(listOf("Glenlivet", "Macallan")) }
+    var newWhiskeyName by remember { mutableStateOf("") }
+    var whiskeys by remember { mutableStateOf(listOf(   Whiskey("Glenlivet",0,40,""),
+                                                        Whiskey("Macallan",12,40, "Rich, smooth, and balanced with notes of honey, citrus, and ginger.", "https://www.garcias.pt/ficheiros/dinamicos/multimedia/imagem/produtos/whisky/__fmhidden__9426f628990414b19a00891c62c5ca9b/0595cab08cecf686d42da15b34549047.jpg"))) }
+
+    var showDetail by remember { mutableStateOf(false) }
+    var selectedWhiskey by remember { mutableStateOf<Whiskey?>(null) }
+
     var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -83,14 +89,14 @@ fun WhiskeyListScreen() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 OutlinedTextField(modifier = Modifier.weight(1f),
-                    value = newWhiskey,
-                    onValueChange = { newWhiskey = it },
+                    value = newWhiskeyName,
+                    onValueChange = { newWhiskeyName = it },
                     label = { Text("Add Whiskey") })
 
                 Button(onClick = {
-                    if (newWhiskey.isNotBlank()) {
-                        whiskeys = whiskeys + newWhiskey
-                        newWhiskey = ""
+                    if (newWhiskeyName.isNotBlank()) {
+                        whiskeys = whiskeys + Whiskey(newWhiskeyName,0,0,"")
+                        newWhiskeyName = ""
                     }
                 }) {
                     Text("Add")
@@ -110,13 +116,24 @@ fun WhiskeyListScreen() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("– $whiskey")
                 Button(onClick = {
+                    selectedWhiskey = whiskey
+                    showDetail = true
+                }) {
+                    Text(whiskey.whiskeyName)
+                }
+                IconButton(onClick = {
                     whiskeys = whiskeys.filterNot { it == whiskey }
                 }) {
-                    Text("Remover")
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Remove")
                 }
             }
+        }
+    }
+
+    if (showDetail && selectedWhiskey != null) {
+        WhiskeyDetailScreen(whiskey = selectedWhiskey!!) {
+            showDetail = false
         }
     }
 }
