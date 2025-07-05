@@ -1,0 +1,144 @@
+package db
+import android.content.Context
+import android.util.Log
+import com.whiskeybook.Whiskey
+import kotlinx.serialization.*
+import java.io.File
+import kotlinx.serialization.json.Json
+
+
+@Serializable
+data class User(
+    val userId: String,
+    val password: String,
+    val userName: String,
+    val userMail: String,
+    val whiskeyList: List<Whiskey> = emptyList()
+)
+{
+}
+
+object UserDataManager {
+    private val fileName :String = "UsersDataBase.json"
+    var usersList : List<User> = emptyList()
+    fun createUser(
+        context: Context,
+        userId: String,
+        userName: String,
+        password: String,
+        userMail: String,
+        whiskeyList: List<Whiskey> = emptyList()
+    ): User? {
+        val userList = loadUsersFromStorage(context).toMutableList()
+
+        // Verify if the User Id already exist
+        if (userList.any { it.userId == userId }) {
+            Log.w("UserDataManager", "Utilizador com ID '$userId' já existe.")
+            return null
+        }
+
+        val newUser = User(
+            userId = userId,
+            password = password,
+            userName = userName,
+            userMail = userMail,
+            whiskeyList = whiskeyList
+        )
+
+        userList.add(newUser)
+        saveDatabase(context, userList)
+
+        return newUser
+    }
+
+
+    fun getAllUsers(): List<User> {
+        return usersList
+    }
+
+    /*
+    fun deleteUser(userId: String): Boolean {
+        val result = userList.removeIf { it.userId == userId }
+        if (result) {
+            saveDatabase()
+        }
+        return result
+    }
+    fun updateUserDatabase(context: Context, userList: List<User>) {
+        val json = Json.encodeToString(userList)
+        val file = File(context.filesDir, "UserDataBase.json")
+        file.writeText(json)
+    }
+    */
+
+    private fun loadUsersFromAssets(context: Context): MutableList<User> {
+        val json = Json { ignoreUnknownKeys = true }
+
+        return try {
+            val inputStream = context.assets.open(fileName)
+            val jsonString = inputStream.bufferedReader().use { it.readText() }
+
+            val users: List<User> = json.decodeFromString(jsonString)
+            users.toMutableList()
+        } catch (e: Exception) {
+            Log.e("UserDataManager", "Erro a ler o JSON do assets", e)
+            mutableListOf()
+        }
+    }
+
+    private fun loadUsersFromStorage(context: Context): List<User> {
+        val json = Json { ignoreUnknownKeys = true }
+        val file = File(context.filesDir, fileName)
+
+        if (!file.exists()) {
+            copyJsonFromAssetsToStorage(context)
+        }
+
+        return try {
+            val jsonString = file.readText()
+            usersList =json.decodeFromString(jsonString)
+            usersList
+        } catch (e: Exception) {
+            Log.e("UserDataManager", "Erro ao ler JSON do storage", e)
+            emptyList()
+        }
+    }
+
+
+    fun validateCredentials(context: Context, inputId: String, inputPassword: String): Boolean {
+        val users = loadUsersFromAssets(context)
+        val user = users.find { it.userId == inputId }
+        return user?.password == inputPassword
+    }
+
+    private fun copyJsonFromAssetsToStorage(context: Context) {
+        try {
+            val inputStream = context.assets.open(fileName)
+            val outFile = File(context.filesDir, fileName)
+
+            inputStream.use { input ->
+                outFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("UserDataManager", "Erro ao copiar JSON de assets para storage", e)
+        }
+    }
+
+
+
+    private fun saveDatabase(context: Context, userList: List<User>) {
+        val json = Json { prettyPrint = true }
+        val file = File(context.filesDir, fileName)
+
+        try {
+            val jsonString = json.encodeToString(userList)
+            file.writeText(jsonString)
+
+        } catch (e: Exception) {
+            Log.e("UserDataManager", "Erro ao guardar JSON no storage", e)
+        }
+    }
+
+}
