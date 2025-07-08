@@ -75,22 +75,6 @@ object UserDataManager {
     */
 
     //------------------TODO:  refactor when connected to database ---------------//
-    // only read option.
-    private fun loadUsersFromAssets(context: Context): MutableList<User> {
-        val json = Json { ignoreUnknownKeys = true }
-
-        return try {
-            val inputStream = context.assets.open(FILENAME)
-            val jsonString = inputStream.bufferedReader().use { it.readText() }
-
-            val users: List<User> = json.decodeFromString(jsonString)
-            users.toMutableList()
-        } catch (e: Exception) {
-            Log.e("UserDataManager", "Error to read JSON assets", e)
-            mutableListOf()
-        }
-    }
-    // when use assets this function is need to enable the write option
     private fun copyJsonFromAssetsToStorage(context: Context) {
         try {
             val inputStream = context.assets.open(FILENAME)
