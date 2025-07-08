@@ -107,8 +107,13 @@ object UserDataManager {
 
     fun authenticateUser(context: Context, inputId: String, inputPassword: String): User? {
         val users = loadUsersFromAssets(context)
-        val user = users.find { it.userId == inputId }
-        return user
+        val user = users.find { it.userId == inputId}
+        if(user != null)
+        {
+            if(user.userId == inputId && user.password == inputPassword)
+                return  user
+        }
+        return null
     }
 
     private fun copyJsonFromAssetsToStorage(context: Context) {
