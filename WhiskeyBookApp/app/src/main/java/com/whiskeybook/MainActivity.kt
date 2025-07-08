@@ -23,28 +23,66 @@ fun MainApp() {
     var loggedIn by rememberSaveable { mutableStateOf(false) }
     var loggedInUser by remember { mutableStateOf<User?>(null) }
     var showSignUp by rememberSaveable { mutableStateOf(false) }
+    var currentScreen by remember { mutableStateOf("menu") } // "menu", "whiskeys", "userinfo"
 
-    if (loggedIn && loggedInUser != null) {WhiskeyListScreen(
-        user = loggedInUser!!,
-        onLogout = {
-            loggedInUser = null
-            loggedIn = false
+    when {
+        loggedIn && loggedInUser != null -> {
+            when (currentScreen) {
+                "menu" -> {
+                    MainMenuScreen(
+                        user = loggedInUser!!,
+                        onLogout = {
+                            loggedIn = false
+                            loggedInUser = null
+                            currentScreen = "menu"
+                        },
+                        onNavigateToWhiskeys = { currentScreen = "whiskeys" },
+                        onNavigateToUserInfo = { currentScreen = "userinfo" }
+                    )
+                }
+
+                "whiskeys" -> {
+                    WhiskeyListScreen(
+                        user = loggedInUser!!,
+                        onLogout = {
+                            loggedIn = false
+                            loggedInUser = null
+                            currentScreen = "menu"
+                        }
+                    )
+                }
+
+                "userinfo" -> {
+                    UserInfoScreen(
+                        user = loggedInUser!!,
+                        onBack = { currentScreen = "menu" },
+                        onLogout = {
+                            loggedIn = false
+                            loggedInUser = null
+                            currentScreen = "menu"
+                        }
+                    )
+                }
+            }
         }
-    )
-    } else {
-        if (showSignUp) {
+
+        showSignUp -> {
             SignUpScreen(
                 onSignUpSuccess = { newUser ->
                     showSignUp = false
                     loggedInUser = newUser
                     loggedIn = true
+                    currentScreen = "menu"
                 }
             )
-        } else {
+        }
+
+        else -> {
             LoginScreen(
                 onLoginSuccess = { user ->
                     loggedInUser = user
                     loggedIn = user != null
+                    currentScreen = "menu"
                 },
                 onSignUpClick = {
                     showSignUp = true
