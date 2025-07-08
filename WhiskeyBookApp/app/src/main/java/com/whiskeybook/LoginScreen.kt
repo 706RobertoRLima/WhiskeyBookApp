@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import android.content.Context
-import android.util.Log
 import androidx.compose.ui.platform.LocalContext
 import db.User
 import db.UserDataManager
@@ -78,14 +77,21 @@ fun LoginScreen(
 
 
 @Composable
-fun SignUpScreen(onSignUpSuccess: (User) -> Unit, context: Context = LocalContext.current ) {
+fun SignUpScreen(
+    onSignUpSuccess: (User) -> Unit,
+    context: Context = LocalContext.current
+) {
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var userName by remember { mutableStateOf("") }
     var userMail by remember { mutableStateOf("") }
 
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -105,14 +111,39 @@ fun SignUpScreen(onSignUpSuccess: (User) -> Unit, context: Context = LocalContex
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            val newUser: User? = UserDataManager.createUser(context, userId, password, userName, userMail, emptyList())
-            if (newUser != null) {
-                onSignUpSuccess(newUser)
-            } else {
-                Log.e("SignUpScreen","Error on create user")
+            when {
+                userId.isBlank() || password.isBlank() || userName.isBlank() || userMail.isBlank() -> {
+                    errorMessage = "All fields must be filled."
+                }
+
+                UserDataManager.userExist(context, userId) -> {
+                    errorMessage = "User ID '$userId' already exists."
+                }
+
+                else -> {
+                    val newUser = UserDataManager.createUser(
+                        context,
+                        userId,
+                        userName,
+                        password,
+                        userMail,
+                        emptyList()
+                    )
+                    if (newUser != null) {
+                        errorMessage = null
+                        onSignUpSuccess(newUser)
+                    } else {
+                        errorMessage = "Failed to create user."
+                    }
+                }
             }
         }) {
             Text("Create Account")
+        }
+
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(it, color = MaterialTheme.colorScheme.error)
         }
     }
 }

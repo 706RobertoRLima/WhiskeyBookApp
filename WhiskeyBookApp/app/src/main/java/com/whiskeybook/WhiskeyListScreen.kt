@@ -14,125 +14,145 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.lazy.items
 import db.*
-
 @Composable
-fun WhiskeyListScreen(user: User, viewModel: WhiskeyViewModel = viewModel()) {
+fun WhiskeyListScreen(
+    user: User,
+    onLogout: () -> Unit,
+    viewModel: WhiskeyViewModel = viewModel()
+) {
     var newWhiskeyName by remember { mutableStateOf("") }
     var whiskeys by remember { mutableStateOf(user.whiskeyList.toList()) }
-
     var showDetail by remember { mutableStateOf(false) }
     var selectedWhiskey by remember { mutableStateOf<Whiskey?>(null) }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        var query by remember { mutableStateOf("") }
-        var searchPressed by remember { mutableStateOf(false) }
-
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    label = { Text("Search Whiskey") },
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(
-                    onClick = {
-                        viewModel.search(query)
-                        searchPressed = true
-                    }
-                ) {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            val whiskeysSearched = viewModel.whiskeyList
-            if (searchPressed && whiskeysSearched.isEmpty()) {
-                Text("No results found.")
-            } else {
-                LazyColumn {
-                    items(whiskeysSearched) { whiskey ->
-                        Text("${whiskey.whiskeyName} - )")
-                        Divider()
-                    }
-                }
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Top-right user info + logout
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Hello, ${user.userName}", style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = onLogout) {
+                Text("Logout")
             }
         }
 
-
-        // to add new whiskey element to the list
-        Card(
+        // Main content
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = MaterialTheme.shapes.medium
+                .fillMaxSize()
+                .padding(top = 72.dp, start = 32.dp, end = 32.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
+            var query by remember { mutableStateOf("") }
+            var searchPressed by remember { mutableStateOf(false) }
+
+            Column(Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        label = { Text("Search Whiskey") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = {
+                            viewModel.search(query)
+                            searchPressed = true
+                        }
+                    ) {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                val whiskeysSearched = viewModel.whiskeyList
+                if (searchPressed && whiskeysSearched.isEmpty()) {
+                    Text("No results found.")
+                } else {
+                    LazyColumn {
+                        items(whiskeysSearched) { whiskey ->
+                            Text(whiskey.whiskeyName)
+                            Divider()
+                        }
+                    }
+                }
+            }
+
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = MaterialTheme.shapes.medium
             ) {
-                OutlinedTextField(modifier = Modifier.weight(1f),
-                    value = newWhiskeyName,
-                    onValueChange = { newWhiskeyName = it },
-                    label = { Text("Add Whiskey") })
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = newWhiskeyName,
+                        onValueChange = { newWhiskeyName = it },
+                        label = { Text("Add Whiskey") }
+                    )
 
-                Button(onClick = {
-                    if (newWhiskeyName.isNotBlank()) {
-                        whiskeys = whiskeys + Whiskey(newWhiskeyName,
-                            "single",
-                            "scotland",
-                            12,
-                            40,
-                            "",
-                            "")
-                        newWhiskeyName = ""
+                    Button(onClick = {
+                        if (newWhiskeyName.isNotBlank()) {
+                            whiskeys = whiskeys + Whiskey(
+                                newWhiskeyName,
+                                "single",
+                                "scotland",
+                                12,
+                                40,
+                                "",
+                                ""
+                            )
+                            newWhiskeyName = ""
+                        }
+                    }) {
+                        Text("Add")
                     }
-                }) {
-                    Text("Add")
+                }
+            }
+
+            Text("My Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+
+            whiskeys.forEach { whiskey ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(onClick = {
+                        selectedWhiskey = whiskey
+                        showDetail = true
+                    }) {
+                        Text(whiskey.whiskeyName)
+                    }
+                    IconButton(onClick = {
+                        whiskeys = whiskeys.filterNot { it == whiskey }
+                    }) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Remove")
+                    }
                 }
             }
         }
 
-
-        Text("My Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-
-        // to remove whiskey element from the list
-        whiskeys.forEach { whiskey ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(onClick = {
-                    selectedWhiskey = whiskey
-                    showDetail = true
-                }) {
-                    Text(whiskey.whiskeyName)
-                }
-                IconButton(onClick = {
-                    whiskeys = whiskeys.filterNot { it == whiskey }
-                }) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Remove")
-                }
+        if (showDetail && selectedWhiskey != null) {
+            WhiskeyDetailScreen(whiskey = selectedWhiskey!!) {
+                showDetail = false
             }
-        }
-    }
-
-    if (showDetail && selectedWhiskey != null) {
-        WhiskeyDetailScreen(whiskey = selectedWhiskey!!) {
-            showDetail = false
         }
     }
 }

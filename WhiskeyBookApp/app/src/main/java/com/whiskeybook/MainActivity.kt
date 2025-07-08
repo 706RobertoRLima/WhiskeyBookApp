@@ -24,8 +24,13 @@ fun MainApp() {
     var loggedInUser by remember { mutableStateOf<User?>(null) }
     var showSignUp by rememberSaveable { mutableStateOf(false) }
 
-    if (loggedIn && loggedInUser != null) {
-        WhiskeyListScreen(user = loggedInUser!!) // Passing logged-in user
+    if (loggedIn && loggedInUser != null) {WhiskeyListScreen(
+        user = loggedInUser!!,
+        onLogout = {
+            loggedInUser = null
+            loggedIn = false
+        }
+    )
     } else {
         if (showSignUp) {
             SignUpScreen(

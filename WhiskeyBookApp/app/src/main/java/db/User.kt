@@ -15,11 +15,9 @@ data class User(
     val userMail: String,
     val whiskeyList: List<Whiskey> = emptyList()
 )
-{
-}
 
 object UserDataManager {
-    private val fileName :String = "UsersDataBase.json"
+    private const val FILENAME :String = "UsersDataBase.json"
     private var usersList : List<User> = emptyList()
     fun createUser(
         context: Context,
@@ -28,15 +26,8 @@ object UserDataManager {
         password: String,
         userMail: String,
         whiskeyList: List<Whiskey> = emptyList()
-    ): User? {
+    ): User {
         val userList = loadUsersFromStorage(context).toMutableList()
-
-        // Verify if the User Id already exist
-        if (userList.any { it.userId == userId }) {
-            Log.w("UserDataManager", "Utilizador com ID '$userId' já existe.")
-            return null
-        }
-
         val newUser = User(
             userId = userId,
             password = password,
@@ -44,19 +35,29 @@ object UserDataManager {
             userMail = userMail,
             whiskeyList = whiskeyList
         )
-
         userList.add(newUser)
         saveDatabase(context, userList)
-
         return newUser
     }
 
-
-    fun getAllUsers(): List<User> {
-        return usersList
+    fun userExist(
+        context: Context,
+        userId: String): Boolean
+    {
+        val userList = loadUsersFromStorage(context).toMutableList()
+        // Verify if the User Id already exist
+        if (userList.any { it.userId == userId }) {
+            Log.w("createUser", "UserID: '$userId' already exist.")
+            return true
+        }
+        return false
     }
 
     /*
+        fun getAllUsers(): List<User> {
+        return usersList
+    }
+
     fun deleteUser(userId: String): Boolean {
         val result = userList.removeIf { it.userId == userId }
         if (result) {
@@ -75,20 +76,20 @@ object UserDataManager {
         val json = Json { ignoreUnknownKeys = true }
 
         return try {
-            val inputStream = context.assets.open(fileName)
+            val inputStream = context.assets.open(FILENAME)
             val jsonString = inputStream.bufferedReader().use { it.readText() }
 
             val users: List<User> = json.decodeFromString(jsonString)
             users.toMutableList()
         } catch (e: Exception) {
-            Log.e("UserDataManager", "Erro a ler o JSON do assets", e)
+            Log.e("UserDataManager", "Error to read JSON assets", e)
             mutableListOf()
         }
     }
 
     private fun loadUsersFromStorage(context: Context): List<User> {
         val json = Json { ignoreUnknownKeys = true }
-        val file = File(context.filesDir, fileName)
+        val file = File(context.filesDir, FILENAME)
 
         if (!file.exists()) {
             copyJsonFromAssetsToStorage(context)
@@ -104,7 +105,6 @@ object UserDataManager {
         }
     }
 
-
     fun authenticateUser(context: Context, inputId: String, inputPassword: String): User? {
         val users = loadUsersFromAssets(context)
         val user = users.find { it.userId == inputId}
@@ -118,8 +118,8 @@ object UserDataManager {
 
     private fun copyJsonFromAssetsToStorage(context: Context) {
         try {
-            val inputStream = context.assets.open(fileName)
-            val outFile = File(context.filesDir, fileName)
+            val inputStream = context.assets.open(FILENAME)
+            val outFile = File(context.filesDir, FILENAME)
 
             inputStream.use { input ->
                 outFile.outputStream().use { output ->
@@ -133,7 +133,7 @@ object UserDataManager {
 
     private fun saveDatabase(context: Context, userList: List<User>) {
         val json = Json { prettyPrint = true }
-        val file = File(context.filesDir, fileName)
+        val file = File(context.filesDir, FILENAME)
 
         try {
             val jsonString = json.encodeToString(userList)
