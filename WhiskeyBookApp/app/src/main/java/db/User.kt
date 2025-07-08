@@ -52,12 +52,19 @@ object UserDataManager {
         }
         return false
     }
-
-    /*
-        fun getAllUsers(): List<User> {
-        return usersList
+    fun authenticateUser(context: Context, inputId: String, inputPassword: String): User? {
+        val users = loadUsersFromStorage(context).toMutableList()
+        val user = users.find { it.userId == inputId}
+        if(user != null)
+        {
+            if(user.userId == inputId && user.password == inputPassword)
+                return  user
+        }
+        return null
     }
 
+
+    /*
     fun deleteUser(userId: String): Boolean {
         val result = userList.removeIf { it.userId == userId }
         if (result) {
@@ -65,13 +72,10 @@ object UserDataManager {
         }
         return result
     }
-    fun updateUserDatabase(context: Context, userList: List<User>) {
-        val json = Json.encodeToString(userList)
-        val file = File(context.filesDir, "UserDataBase.json")
-        file.writeText(json)
-    }
     */
 
+    //------------------TODO:  refactor when connected to database ---------------//
+    // only read option.
     private fun loadUsersFromAssets(context: Context): MutableList<User> {
         val json = Json { ignoreUnknownKeys = true }
 
@@ -86,36 +90,7 @@ object UserDataManager {
             mutableListOf()
         }
     }
-
-    private fun loadUsersFromStorage(context: Context): List<User> {
-        val json = Json { ignoreUnknownKeys = true }
-        val file = File(context.filesDir, FILENAME)
-
-        if (!file.exists()) {
-            copyJsonFromAssetsToStorage(context)
-        }
-
-        return try {
-            val jsonString = file.readText()
-            usersList =json.decodeFromString(jsonString)
-            usersList
-        } catch (e: Exception) {
-            Log.e("UserDataManager", "Error to read JSON file", e)
-            emptyList()
-        }
-    }
-
-    fun authenticateUser(context: Context, inputId: String, inputPassword: String): User? {
-        val users = loadUsersFromAssets(context)
-        val user = users.find { it.userId == inputId}
-        if(user != null)
-        {
-            if(user.userId == inputId && user.password == inputPassword)
-                return  user
-        }
-        return null
-    }
-
+    // when use assets this function is need to enable the write option
     private fun copyJsonFromAssetsToStorage(context: Context) {
         try {
             val inputStream = context.assets.open(FILENAME)
@@ -128,6 +103,25 @@ object UserDataManager {
             }
         } catch (e: Exception) {
             Log.e("UserDataManager", "Error  to copy JSON from assets to storage", e)
+        }
+    }
+    //---------------------------------//
+
+    // load users in storage. read and write options
+    private fun loadUsersFromStorage(context: Context): List<User> {
+        val json = Json { ignoreUnknownKeys = true }
+        val file = File(context.filesDir, FILENAME)
+
+        if (!file.exists()) {
+            copyJsonFromAssetsToStorage(context)
+        }
+        return try {
+            val jsonString = file.readText()
+            usersList =json.decodeFromString(jsonString)
+            usersList
+        } catch (e: Exception) {
+            Log.e("UserDataManager", "Error to read JSON file", e)
+            emptyList()
         }
     }
 
