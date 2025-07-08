@@ -35,8 +35,10 @@ fun WhiskeyListScreen(
         ) {
             Text("Hello, ${user.userName}", style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = onLogout) {
-                Text("Logout")
+            IconButton(
+                onClick = onLogout
+            ) {
+                Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Logout")
             }
         }
 
