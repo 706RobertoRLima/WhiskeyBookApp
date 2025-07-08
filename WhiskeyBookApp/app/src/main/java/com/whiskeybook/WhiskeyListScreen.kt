@@ -13,28 +13,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.lazy.items
+import db.*
 
 @Composable
-fun WhiskeyListScreen(viewModel: WhiskeyViewModel = viewModel()) {
+fun WhiskeyListScreen(user: User, viewModel: WhiskeyViewModel = viewModel()) {
     var newWhiskeyName by remember { mutableStateOf("") }
-    var whiskeys by remember { mutableStateOf(listOf(
-        Whiskey("Glenlivet",
-                "single",
-                "scotland",
-                12,
-                40,
-                "",
-                "https://spades.com.mt/cdn/shop/products/Glenlivet_12_YO_GB_40_70cl_600x600_crop_center.png?v=1726927083",
-        ),
-        Whiskey("Macallan",
-                "single",
-                "scotland",
-                12,
-                40,
-                "Rich, smooth, and balanced with notes of honey, citrus, and ginger.",
-                "https://www.garcias.pt/ficheiros/dinamicos/multimedia/imagem/produtos/whisky/__fmhidden__9426f628990414b19a00891c62c5ca9b/0595cab08cecf686d42da15b34549047.jpg",
-            ))) }
-
+    var whiskeys by remember { mutableStateOf(user.whiskeyList.toList()) }
 
     var showDetail by remember { mutableStateOf(false) }
     var selectedWhiskey by remember { mutableStateOf<Whiskey?>(null) }
@@ -74,7 +58,6 @@ fun WhiskeyListScreen(viewModel: WhiskeyViewModel = viewModel()) {
             } else {
                 LazyColumn {
                     items(whiskeysSearched) { whiskey ->
-                        //Text("${whiskey.name} - ${whiskey.country} (${whiskey.age ?: "N/A"} yrs)")
                         Text("${whiskey.whiskeyName} - )")
                         Divider()
                     }

@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 
 import androidx.compose.runtime.saveable.rememberSaveable
+import db.User
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,23 +21,25 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     var loggedIn by rememberSaveable { mutableStateOf(false) }
+    var loggedInUser by remember { mutableStateOf<User?>(null) }
     var showSignUp by rememberSaveable { mutableStateOf(false) }
 
-    if (loggedIn) {
-        // Main content after login
-        WhiskeyListScreen()
+    if (loggedIn && loggedInUser != null) {
+        WhiskeyListScreen(user = loggedInUser!!) // Passing logged-in user
     } else {
         if (showSignUp) {
             SignUpScreen(
-                onSignUpSuccess = {
+                onSignUpSuccess = { newUser ->
                     showSignUp = false
+                    loggedInUser = newUser
                     loggedIn = true
                 }
             )
         } else {
             LoginScreen(
-                onLoginSuccess = { success ->
-                    loggedIn = success
+                onLoginSuccess = { user ->
+                    loggedInUser = user
+                    loggedIn = user != null
                 },
                 onSignUpClick = {
                     showSignUp = true

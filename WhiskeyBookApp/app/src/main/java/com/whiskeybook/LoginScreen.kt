@@ -12,13 +12,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import android.content.Context
+import android.util.Log
 import androidx.compose.ui.platform.LocalContext
+import db.User
 import db.UserDataManager
 
 @Composable
 fun LoginScreen(
     context: Context = LocalContext.current,
-    onLoginSuccess: (Boolean) -> Unit,
+    onLoginSuccess: (User?) -> Unit,
     onSignUpClick: () -> Unit
 ) {
     var userId by remember { mutableStateOf("") }
@@ -26,18 +28,25 @@ fun LoginScreen(
     var error by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("User Login", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(value = userId, onValueChange = { userId = it }, label = { Text("User Id") })
+        OutlinedTextField(
+            value = userId,
+            onValueChange = { userId = it },
+            label = { Text("User Id") }
+        )
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = password, onValueChange = { password = it },
+            value = password,
+            onValueChange = { password = it },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -46,22 +55,30 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            error = !(UserDataManager.validateCredentials(context, userId, password))
-            onLoginSuccess(!error)
+            val newUser = UserDataManager.authenticateUser(context, userId, password)
+            if(newUser != null)
+            {
+                onLoginSuccess(newUser)
+            }
+            else
+                error = true
         }) {
             Text("Login")
         }
+
         if (error) {
             Text("Invalid credentials", color = MaterialTheme.colorScheme.error)
         }
+
         TextButton(onClick = onSignUpClick) {
             Text("Sign Up")
         }
     }
 }
 
+
 @Composable
-fun SignUpScreen(onSignUpSuccess: () -> Unit, context: Context = LocalContext.current ) {
+fun SignUpScreen(onSignUpSuccess: (User) -> Unit, context: Context = LocalContext.current ) {
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var userName by remember { mutableStateOf("") }
@@ -88,8 +105,12 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, context: Context = LocalContext.cu
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            UserDataManager.createUser(context, userId, password, userName, userMail, emptyList<Whiskey>())
-            onSignUpSuccess()
+            val newUser: User? = UserDataManager.createUser(context, userId, password, userName, userMail, emptyList())
+            if (newUser != null) {
+                onSignUpSuccess(newUser)
+            } else {
+                Log.e("SignUpScreen","Error on create user")
+            }
         }) {
             Text("Create Account")
         }

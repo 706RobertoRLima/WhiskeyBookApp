@@ -20,7 +20,7 @@ data class User(
 
 object UserDataManager {
     private val fileName :String = "UsersDataBase.json"
-    var usersList : List<User> = emptyList()
+    private var usersList : List<User> = emptyList()
     fun createUser(
         context: Context,
         userId: String,
@@ -99,16 +99,16 @@ object UserDataManager {
             usersList =json.decodeFromString(jsonString)
             usersList
         } catch (e: Exception) {
-            Log.e("UserDataManager", "Erro ao ler JSON do storage", e)
+            Log.e("UserDataManager", "Error to read JSON file", e)
             emptyList()
         }
     }
 
 
-    fun validateCredentials(context: Context, inputId: String, inputPassword: String): Boolean {
+    fun authenticateUser(context: Context, inputId: String, inputPassword: String): User? {
         val users = loadUsersFromAssets(context)
         val user = users.find { it.userId == inputId }
-        return user?.password == inputPassword
+        return user
     }
 
     private fun copyJsonFromAssetsToStorage(context: Context) {
@@ -122,11 +122,9 @@ object UserDataManager {
                 }
             }
         } catch (e: Exception) {
-            Log.e("UserDataManager", "Erro ao copiar JSON de assets para storage", e)
+            Log.e("UserDataManager", "Error  to copy JSON from assets to storage", e)
         }
     }
-
-
 
     private fun saveDatabase(context: Context, userList: List<User>) {
         val json = Json { prettyPrint = true }
@@ -137,7 +135,7 @@ object UserDataManager {
             file.writeText(jsonString)
 
         } catch (e: Exception) {
-            Log.e("UserDataManager", "Erro ao guardar JSON no storage", e)
+            Log.e("UserDataManager", "Error to storage JSON file", e)
         }
     }
 
