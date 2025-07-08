@@ -1,139 +1,158 @@
 package com.whiskeybook
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
-
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.lazy.items
+import db.*
 @Composable
-fun WhiskeyListScreen() {
-
+fun WhiskeyListScreen(
+    user: User,
+    onLogout: () -> Unit,
+    viewModel: WhiskeyViewModel = viewModel()
+) {
     var newWhiskeyName by remember { mutableStateOf("") }
-    var whiskeys by remember { mutableStateOf(listOf(   Whiskey("Glenlivet",0,40,""),
-                                                        Whiskey("Macallan",12,40, "Rich, smooth, and balanced with notes of honey, citrus, and ginger.", "https://www.garcias.pt/ficheiros/dinamicos/multimedia/imagem/produtos/whisky/__fmhidden__9426f628990414b19a00891c62c5ca9b/0595cab08cecf686d42da15b34549047.jpg"))) }
-
+    var whiskeys by remember { mutableStateOf(user.whiskeyList.toList()) }
     var showDetail by remember { mutableStateOf(false) }
     var selectedWhiskey by remember { mutableStateOf<Whiskey?>(null) }
 
-    var searchQuery by remember { mutableStateOf("") }
-    val context = LocalContext.current
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        // Search on google
-        Card(
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Top-right user info + logout
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = MaterialTheme.shapes.medium
+                .align(Alignment.TopEnd)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier.weight(1f),
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search") }
-                )
-                IconButton(
-                    onClick = {
-                        if (searchQuery.isNotBlank()) {
-                            val query = searchQuery.replace(" ", "+")
-                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                data = Uri.parse("https://www.whiskybase.com/search/?q=$query")
-                            }
-                            context.startActivity(intent)
+            Text("Hello, ${user.userName}", style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = onLogout) {
+                Text("Logout")
+            }
+        }
+
+        // Main content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 72.dp, start = 32.dp, end = 32.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            var query by remember { mutableStateOf("") }
+            var searchPressed by remember { mutableStateOf(false) }
+
+            Column(Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        label = { Text("Search Whiskey") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = {
+                            viewModel.search(query)
+                            searchPressed = true
                         }
-                    },
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search on Google")
+                    ) {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                val whiskeysSearched = viewModel.whiskeyList
+                if (searchPressed && whiskeysSearched.isEmpty()) {
+                    Text("No results found.")
+                } else {
+                    LazyColumn {
+                        items(whiskeysSearched) { whiskey ->
+                            Text(whiskey.whiskeyName)
+                            Divider()
+                        }
+                    }
                 }
             }
-        }
 
-        // to add new whiskey element to the list
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Row(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = MaterialTheme.shapes.medium
             ) {
-                OutlinedTextField(modifier = Modifier.weight(1f),
-                    value = newWhiskeyName,
-                    onValueChange = { newWhiskeyName = it },
-                    label = { Text("Add Whiskey") })
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = newWhiskeyName,
+                        onValueChange = { newWhiskeyName = it },
+                        label = { Text("Add Whiskey") }
+                    )
 
-                Button(onClick = {
-                    if (newWhiskeyName.isNotBlank()) {
-                        whiskeys = whiskeys + Whiskey(newWhiskeyName,0,0,"")
-                        newWhiskeyName = ""
+                    Button(onClick = {
+                        if (newWhiskeyName.isNotBlank()) {
+                            whiskeys = whiskeys + Whiskey(
+                                newWhiskeyName,
+                                "single",
+                                "scotland",
+                                12,
+                                40,
+                                "",
+                                ""
+                            )
+                            newWhiskeyName = ""
+                        }
+                    }) {
+                        Text("Add")
                     }
-                }) {
-                    Text("Add")
+                }
+            }
+
+            Text("My Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+
+            whiskeys.forEach { whiskey ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(onClick = {
+                        selectedWhiskey = whiskey
+                        showDetail = true
+                    }) {
+                        Text(whiskey.whiskeyName)
+                    }
+                    IconButton(onClick = {
+                        whiskeys = whiskeys.filterNot { it == whiskey }
+                    }) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Remove")
+                    }
                 }
             }
         }
 
-
-        Text("Whiskey List", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-
-        // to remove whiskey element from the list
-        whiskeys.forEach { whiskey ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(onClick = {
-                    selectedWhiskey = whiskey
-                    showDetail = true
-                }) {
-                    Text(whiskey.whiskeyName)
-                }
-                IconButton(onClick = {
-                    whiskeys = whiskeys.filterNot { it == whiskey }
-                }) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Remove")
-                }
+        if (showDetail && selectedWhiskey != null) {
+            WhiskeyDetailScreen(whiskey = selectedWhiskey!!) {
+                showDetail = false
             }
-        }
-    }
-
-    if (showDetail && selectedWhiskey != null) {
-        WhiskeyDetailScreen(whiskey = selectedWhiskey!!) {
-            showDetail = false
         }
     }
 }

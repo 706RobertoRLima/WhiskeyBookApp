@@ -1,0 +1,28 @@
+[
+  {
+    "userId": "robertolima",
+    "password": "1234",
+    "userName": "Roberto Lima",
+    "userMail": "robertorl_19@hotmail.com",
+    "whiskeyList": [
+      {
+        "whiskeyName": "Glenlivet",
+        "type": "single",
+        "country": "scotland",
+        "age": 12,
+        "alcoholPercentage": 40,
+        "notes": "",
+        "imageUri": "https://spades.com.mt/cdn/shop/products/Glenlivet_12_YO_GB_40_70cl_600x600_crop_center.png?v=1726927083"
+      },
+      {
+        "whiskeyName": "Macallan",
+        "type": "single",
+        "country": "scotland",
+        "age": 12,
+        "alcoholPercentage": 40,
+        "notes": "Rich, smooth, and balanced with notes of honey, citrus, and ginger.",
+        "imageUri": "https://www.garcias.pt/ficheiros/dinamicos/multimedia/imagem/produtos/whisky/__fmhidden__9426f628990414b19a00891c62c5ca9b/0595cab08cecf686d42da15b34549047.jpg"
+      }
+    ]
+  }
+]
